@@ -19,5 +19,6 @@ def read_item(item_id: int, q: Optional[str] = None):
 @app.get("/date/{date_str}")
 def read_date(date_str: date):
     return {
-        "date_obj": date
+        "year": date_str.year,
+        "month": date_str.month
     }
