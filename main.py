@@ -14,11 +14,14 @@ app = FastAPI()
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     path = request.url.path
-    if path == '/items':
-        return PlainTextResponse(str(exc), status_code=status.HTTP_422_UNPROCESSABLE_ENTITY)
+    if path == '/items' and request.method == 'GET':
+        return JSONResponse(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            content=jsonable_encoder({"detail": "Well you thought it was over"}),
+        )
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-        content=jsonable_encoder({"detail": exc.errors(), "body": exc.body}),
+        content=jsonable_encoder({"detail": exc.errors()}),
     )
 
 
@@ -29,6 +32,11 @@ def read_root():
 
 @app.get("/items")
 def read_items(q: Optional[int] = None):
+    return {"message": "So you want to read everything haha"}
+
+
+@app.post("/items")
+def post_items(q: Optional[int] = None):
     return {"message": "So you want to read everything haha"}
 
 
