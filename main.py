@@ -3,10 +3,18 @@ from typing import Optional
 from fastapi import FastAPI, status
 from datetime import date
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import PlainTextResponse
 from starlette.requests import Request
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
+from pydantic import BaseModel
+
+
+class Item(BaseModel):
+    name: str
+    description: Optional[str] = None
+    price: float
+    tax: Optional[float] = None
+
 
 app = FastAPI()
 
@@ -51,3 +59,12 @@ def read_date(date_str: date):
         "year": date_str.year,
         "month": date_str.month
     }
+
+
+@app.post("/item/")
+def create_item(item: Item):
+    item_dict = item.dict()
+    if item.tax:
+        price_with_tax = item.price + item.tax
+        item_dict.update({'price_with_tax': price_with_tax})
+    return item_dict
