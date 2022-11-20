@@ -12,6 +12,7 @@ from pathlib import Path
 import shutil
 from tempfile import NamedTemporaryFile
 from pydantic import BaseModel
+from datetime import datetime
 
 
 app = FastAPI()
@@ -33,12 +34,13 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
 @app.get("/")
 def read_root():
-    return {"Hello": "World"}
+    current_date = datetime.now().strftime('%m/%d/%Y, %H:%M:%S')
+    return {"detail": f"Hello World: {current_date}"}
 
 
 @app.get("/items")
 def read_items(q: Optional[int] = None):
-    return {"message": "So you want to read everything haha"}
+    return {"detail": "So you want to read everything haha"}
 
 
 @app.post("/items")
