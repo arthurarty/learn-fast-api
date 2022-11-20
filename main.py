@@ -1,16 +1,17 @@
 from typing import Optional
 
-from fastapi import FastAPI, status, UploadFile, File
+from fastapi import FastAPI, status, UploadFile, File, Depends
 from datetime import date
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import PlainTextResponse
 from starlette.requests import Request
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
-from typing import Callable
+from typing import Callable, List
 from pathlib import Path
 import shutil
 from tempfile import NamedTemporaryFile
+from pydantic import BaseModel
 
 
 app = FastAPI()
@@ -73,3 +74,27 @@ def save_upload_file_tmp(upload_file: UploadFile) -> Path:
     finally:
         upload_file.file.close()
     return tmp_path
+
+
+def do_sum(x: Optional[str] = 'that thing'):
+    print('Value of x is')
+    return f'That value was {x}'
+
+
+@app.get('/test_depends/{input_str}', )
+def use_depends(input_str, user_name: str = Depends(do_sum)):
+    return {
+        'input_str': input_str,
+        'user_name': user_name
+    }
+
+
+class UserInput(BaseModel):
+    ids: List[int]
+    name: str
+    age: int
+
+
+@app.post('/inputData')
+def submit_user_data(user_input: UserInput):
+    return user_input
