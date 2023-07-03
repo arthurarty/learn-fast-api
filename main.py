@@ -100,3 +100,8 @@ class UserInput(BaseModel):
 @app.post('/inputData')
 def submit_user_data(user_input: UserInput):
     return user_input
+
+
+@app.post('/display_data')
+async def display_data(data: dict):
+    return data
