@@ -3,7 +3,7 @@ from typing import Optional
 from fastapi import FastAPI, status, UploadFile, File, Depends
 from datetime import date
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import PlainTextResponse
+from fastapi.responses import HTMLResponse, PlainTextResponse
 from starlette.requests import Request
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
@@ -13,9 +13,34 @@ import shutil
 from tempfile import NamedTemporaryFile
 from pydantic import BaseModel
 from datetime import datetime
+from pyinstrument.renderers.html import HTMLRenderer
+
+from pyinstrument import Profiler
 
 
 app = FastAPI()
+
+
+@app.middleware("http")
+async def profile_request(request: Request, call_next):
+    profile_type_to_ext = {"html": "html"}
+    profile_type_to_renderer = {
+        "html": HTMLRenderer,
+    }
+
+    profile_type = request.query_params.get("profile_format", "html")
+
+    # we profile the request along with all additional middlewares, by interrupting
+    # the program every 1ms1 and records the entire stack at that point
+    with Profiler(interval=0.001, async_mode="enabled") as profiler:
+        response = await call_next(request)
+
+    # we dump the profiling into a file
+    extension = profile_type_to_ext[profile_type]
+    renderer = profile_type_to_renderer[profile_type]()
+    with open(f"profile.{extension}", "w", encoding="utf-8") as out:
+        out.write(profiler.output(renderer=renderer))
+    return response
 
 
 @app.exception_handler(RequestValidationError)
